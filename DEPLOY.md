@@ -32,12 +32,27 @@ In [Vercel Dashboard](https://vercel.com) → your project → **Settings → Ge
 Add these under **Settings → Environment Variables** (Production, Preview, Development):
 
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:PASSWORD@db.xxxx.supabase.co:5432/postgres
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_URL_ENCODED_PASSWORD@db.xxxx.supabase.co:5432/postgres
 JWT_SECRET_KEY=your-secure-random-string-min-32-chars
 CORS_ORIGINS=*
 ENVIRONMENT=production
 LOG_FORMAT=json
 ```
+
+**If migrate fails with `failed to resolve host '#2001@db...'`** — your password contains `@` or `#` and was not URL-encoded. Fix:
+
+| Character | Encoded |
+|-----------|---------|
+| `@` | `%40` |
+| `#` | `%23` |
+
+Example: password `Bokachoda@#2001` → use `Bokachoda%40%232001` in the URL:
+
+```text
+postgresql+asyncpg://postgres:Bokachoda%40%232001@db.npgllqecmtjijypxamis.supabase.co:5432/postgres
+```
+
+Or copy the **URI** from Supabase Dashboard → Database → Connection string (password already encoded).
 
 Use your real frontend origin instead of `*` when you know it. See `.env.example` for a template.
 

@@ -72,9 +72,16 @@ class Settings(BaseSettings):
     @field_validator("database_url", mode="before")
     @classmethod
     def ensure_async_driver(cls, value: str) -> str:
-        if value.startswith("postgresql://"):
+        if isinstance(value, str) and value.startswith("postgresql://"):
             return value.replace("postgresql://", "postgresql+asyncpg://", 1)
         return value
+
+    @field_validator("database_url", mode="after")
+    @classmethod
+    def validate_database_url(cls, value: str) -> str:
+        from app.utils.database_url import validate_database_url as _validate
+
+        return _validate(value)
 
     @field_validator("cors_origins", mode="before")
     @classmethod
