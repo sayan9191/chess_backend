@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: chess-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements-minimal.txt && chess-backend migrate
+    startCommand: chess-backend serve --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.0"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_FORMAT
+        value: json
+    healthCheckPath: /api/v1/health

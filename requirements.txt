@@ -1,0 +1,2 @@
+# Full local development install
+-e ".[server,engine,migrate,dev,py39]"

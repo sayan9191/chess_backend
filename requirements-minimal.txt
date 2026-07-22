@@ -1,0 +1,7 @@
+# Minimal production install — use on free/small hosts (Render, Railway, Fly.io)
+# Install: pip install -r requirements-minimal.txt
+#
+# Includes only core runtime deps (~15 packages, no Stockfish, no Alembic, no bcrypt).
+# Machine opponent uses built-in random-move fallback (no binary engine needed).
+
+-e ".[migrate]"
