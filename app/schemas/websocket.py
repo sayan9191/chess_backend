@@ -54,6 +54,7 @@ class WSConnectedPayload(BaseModel):
     clock_running_for: PlayerSide | None = None
     started_at: datetime | None = None
     last_activity_at: datetime | None = None
+    result: GameResult = GameResult.ONGOING
     message: str = "Connected to game session"
 
 
