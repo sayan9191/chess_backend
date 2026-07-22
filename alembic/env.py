@@ -19,7 +19,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 settings = get_settings()
-sync_url = settings.database_url.replace("+asyncpg", "+psycopg")
+sync_url = settings.sync_database_url
 
 
 def run_migrations_offline() -> None:

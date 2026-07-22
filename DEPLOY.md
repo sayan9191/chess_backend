@@ -29,32 +29,28 @@ In [Vercel Dashboard](https://vercel.com) → your project → **Settings → Ge
 
 ### 2. Environment variables
 
-Add these under **Settings → Environment Variables** (Production, Preview, Development):
+**Recommended — use split DB variables** (password can contain `@`, `#`, etc. without encoding):
+
+| Variable | Example |
+|----------|---------|
+| `DB_HOST` | `db.npgllqecmtjijypxamis.supabase.co` |
+| `DB_USER` | `postgres` |
+| `DB_PASSWORD` | your raw Supabase password |
+| `DB_NAME` | `postgres` |
+| `DB_PORT` | `5432` |
+| `JWT_SECRET_KEY` | random 32+ char string |
+| `CORS_ORIGINS` | `*` or your frontend URL |
+| `ENVIRONMENT` | `production` |
+
+Do **not** set `DATABASE_URL` if you use split vars — remove it from Vercel if it exists (it overrides nothing; split vars win when all three of host/user/password are set).
+
+**Alternative — single URL** (only if password has no special chars, or is URL-encoded):
 
 ```env
-DATABASE_URL=postgresql+asyncpg://postgres:YOUR_URL_ENCODED_PASSWORD@db.xxxx.supabase.co:5432/postgres
-JWT_SECRET_KEY=your-secure-random-string-min-32-chars
-CORS_ORIGINS=*
-ENVIRONMENT=production
-LOG_FORMAT=json
+DATABASE_URL=postgresql+asyncpg://postgres:Bokachoda%40%232001@db.npgllqecmtjijypxamis.supabase.co:5432/postgres
 ```
 
-**If migrate fails with `failed to resolve host '#2001@db...'`** — your password contains `@` or `#` and was not URL-encoded. Fix:
-
-| Character | Encoded |
-|-----------|---------|
-| `@` | `%40` |
-| `#` | `%23` |
-
-Example: password `Bokachoda@#2001` → use `Bokachoda%40%232001` in the URL:
-
-```text
-postgresql+asyncpg://postgres:Bokachoda%40%232001@db.npgllqecmtjijypxamis.supabase.co:5432/postgres
-```
-
-Or copy the **URI** from Supabase Dashboard → Database → Connection string (password already encoded).
-
-Use your real frontend origin instead of `*` when you know it. See `.env.example` for a template.
+If migrate fails with `missing a hostname`, your `DATABASE_URL` password is not encoded — switch to split vars above.
 
 **Important:** `DATABASE_URL` must be set before the first deploy so the build step can run migrations.
 

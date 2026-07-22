@@ -1,16 +1,32 @@
-"""Database URL parsing and validation helpers."""
+"""Database URL parsing, building, and validation helpers."""
 
 from __future__ import annotations
 
-from urllib.parse import quote, unquote, urlparse
+from urllib.parse import quote, urlparse
+
+
+def build_database_url(
+    *,
+    user: str,
+    password: str,
+    host: str,
+    port: int = 5432,
+    database: str = "postgres",
+    async_driver: bool = True,
+) -> str:
+    """Build a PostgreSQL URL with proper password encoding (safe for @, #, etc.)."""
+    scheme = "postgresql+asyncpg" if async_driver else "postgresql+psycopg"
+    safe_user = quote(user, safe="")
+    safe_password = quote(password, safe="")
+    return f"{scheme}://{safe_user}:{safe_password}@{host}:{port}/{database}"
 
 
 def validate_database_url(url: str) -> str:
     """
     Validate PostgreSQL connection URL and raise a clear error if malformed.
 
-    Common mistake: password contains @ or # without URL-encoding, which makes
-    the parser treat part of the password as the hostname.
+    Prefer DB_HOST + DB_USER + DB_PASSWORD on Vercel instead of a single URL when
+    the password contains @, #, or other special characters.
     """
     normalized = url.replace("postgresql+asyncpg://", "postgresql://").replace(
         "postgresql+psycopg://", "postgresql://"
@@ -24,43 +40,33 @@ def validate_database_url(url: str) -> str:
 
     hostname = parsed.hostname
     if not hostname:
-        raise ValueError(
-            "DATABASE_URL is missing a hostname. Check the format: "
-            "postgresql+asyncpg://USER:PASSWORD@HOST:5432/DATABASE"
-        )
+        raise ValueError(_malformed_password_hint(None))
 
     invalid_host_markers = ("@", "#", " ")
     for marker in invalid_host_markers:
         if marker in hostname:
             raise ValueError(_malformed_password_hint(hostname))
 
-    # Hostname starting with digit/punctuation often means password leaked into host
     if hostname[0] in "#%0123456789":
         raise ValueError(_malformed_password_hint(hostname))
 
     return url
 
 
-def _malformed_password_hint(bad_hostname: str) -> str:
+def _malformed_password_hint(bad_hostname: str | None) -> str:
+    host_part = f" ({bad_hostname!r})" if bad_hostname else ""
     return (
-        "DATABASE_URL appears malformed — the hostname looks wrong "
-        f"({bad_hostname!r}). If your Supabase/Postgres password contains "
-        "special characters (@, #, /, :, etc.), you must URL-encode them before "
-        "setting DATABASE_URL in Vercel:\n"
-        "  @  →  %40\n"
-        "  #  →  %23\n"
-        "  /  →  %2F\n"
-        "Example: password 'Bokachoda@#2001' → 'Bokachoda%40%232001'\n"
-        "Full example:\n"
-        "  postgresql+asyncpg://postgres:YOUR_ENCODED_PASSWORD@db.xxxx.supabase.co:5432/postgres\n"
-        "Tip: In Supabase Dashboard → Project Settings → Database → Connection string, "
-        "use the URI tab and copy the string (password is usually pre-encoded)."
+        "DATABASE_URL is invalid"
+        + host_part
+        + ". Passwords with @ or # break single-line URLs.\n\n"
+        "On Vercel, use separate variables instead (no encoding needed):\n"
+        "  DB_HOST=db.xxxx.supabase.co\n"
+        "  DB_USER=postgres\n"
+        "  DB_PASSWORD=your-raw-password\n"
+        "  DB_NAME=postgres\n"
+        "  DB_PORT=5432\n\n"
+        "Or URL-encode the password in DATABASE_URL: @ → %40, # → %23"
     )
-
-
-def encode_password_for_url(password: str) -> str:
-    """URL-encode a database password for use in DATABASE_URL."""
-    return quote(password, safe="")
 
 
 def mask_database_url(url: str) -> str:
