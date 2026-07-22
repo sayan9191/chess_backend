@@ -1,2 +1,2 @@
-# Vercel production install (used by vercel.json buildCommand)
+# Legacy pip install for manual deploys. Vercel uses pyproject.toml + uv.lock instead.
 -e ".[migrate,server,py39]"

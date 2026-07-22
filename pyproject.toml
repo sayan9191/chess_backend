@@ -46,6 +46,19 @@ py39 = ["eval-type-backport>=0.2.0"]
 dev = ["pytest>=8.3.0", "pytest-asyncio>=0.25.0", "httpx>=0.28.0", "eval-type-backport>=0.2.0"]
 all = ["chess-backend[server,engine,migrate,dev]"]
 
+[dependency-groups]
+# Installed by default for Vercel/CI deploy (uv sync --no-dev still includes default-groups)
+deploy = [
+    "alembic>=1.14.0",
+    "psycopg[binary]>=3.2.0",
+    "websockets>=14.0",
+    "eval-type-backport>=0.2.0",
+    "uvicorn[standard]>=0.34.0",
+]
+
+[tool.uv]
+default-groups = ["deploy"]
+
 [project.scripts]
 chess-backend = "app.cli:main"
 
@@ -64,7 +77,6 @@ app = ["py.typed"]
 "." = ["alembic.ini"]
 "alembic" = [
     "alembic/env.py",
-    "alembic/script.py.mako",
     "alembic/versions/001_initial_schema.py",
     "alembic/versions/002_game_session_clock.py",
 ]

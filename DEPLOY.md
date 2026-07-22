@@ -16,7 +16,7 @@ This backend needs a **long-running Python process** and **WebSockets** for live
 
 ## Deploy to Vercel
 
-The repo includes `vercel.json`, `requirements-vercel.txt`, and `.python-version` for Vercel.
+The repo includes `vercel.json`, `uv.lock`, and `.python-version` for Vercel.
 
 ### 1. Vercel project settings
 
