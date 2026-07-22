@@ -7,10 +7,92 @@
 | **Render** (free) | Yes | Yes | Recommended |
 | **Railway** (free tier) | Yes | Yes | Recommended |
 | **Fly.io** | Yes | Yes | Good for Docker deploy |
-| **Vercel** | Serverless only | No | REST only; not suitable for chess WebSocket |
+| **Vercel** | Serverless (Fluid) | Yes* | Possible; see Vercel section below |
 | **GitHub Pages** | No | No | Static frontend only — host API elsewhere |
 
-This backend needs a **long-running Python process** and **WebSockets** for live games. Use Render or Railway, not Vercel/Pages.
+This backend needs a **long-running Python process** and **WebSockets** for live games. **Render or Railway** are the most reliable hosts. **Vercel** works for testing and light use (see below).
+
+---
+
+## Deploy to Vercel
+
+The repo includes `vercel.json`, `requirements-vercel.txt`, and `.python-version` for Vercel.
+
+### 1. Vercel project settings
+
+In [Vercel Dashboard](https://vercel.com) → your project → **Settings → General**:
+
+| Setting | Value |
+|---------|--------|
+| **Root Directory** | `BACKEND/backend` if the repo root is `CHESS`, or `.` if this backend folder is the repo root |
+| **Framework Preset** | Other (or FastAPI if detected) |
+
+### 2. Environment variables
+
+Add these under **Settings → Environment Variables** (Production, Preview, Development):
+
+```env
+DATABASE_URL=postgresql+asyncpg://postgres:PASSWORD@db.xxxx.supabase.co:5432/postgres
+JWT_SECRET_KEY=your-secure-random-string-min-32-chars
+CORS_ORIGINS=*
+ENVIRONMENT=production
+LOG_FORMAT=json
+```
+
+Use your real frontend origin instead of `*` when you know it. See `.env.example` for a template.
+
+**Important:** `DATABASE_URL` must be set before the first deploy so the build step can run migrations.
+
+### 3. Deploy
+
+Push to GitHub — Vercel redeploys automatically.
+
+Or locally:
+
+```bash
+cd BACKEND/backend   # or backend/ if that is your repo root
+npx vercel --prod
+```
+
+### 4. Verify
+
+```bash
+curl https://YOUR-PROJECT.vercel.app/api/v1/health
+```
+
+Open API docs: `https://YOUR-PROJECT.vercel.app/docs`
+
+WebSocket URL for the Flutter app:
+
+```text
+wss://YOUR-PROJECT.vercel.app/api/v1/games/{gameId}/ws?token=JWT
+```
+
+### 5. Point the Flutter app at Vercel
+
+**Option A — full URLs (recommended):**
+
+```bash
+flutter run \
+  --dart-define=API_BASE_URL=https://YOUR-PROJECT.vercel.app/api/v1 \
+  --dart-define=WS_BASE_URL=wss://YOUR-PROJECT.vercel.app/api/v1
+```
+
+**Option B — host + HTTPS flag:**
+
+```bash
+flutter run \
+  --dart-define=API_HOST=YOUR-PROJECT.vercel.app \
+  --dart-define=API_USE_HTTPS=true \
+  --dart-define=API_PORT=443
+```
+
+### Vercel limitations
+
+- **Stockfish** is not installed → computer uses random legal moves.
+- **In-memory WebSocket sessions** may break if Vercel scales to multiple instances.
+- **Long games** need sufficient `maxDuration` (set to 300s in `vercel.json`; Pro plan may be required for very long sessions).
+- **Fluid compute** must be enabled (default on new Vercel projects).
 
 ---
 

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pip install -r requirements-vercel.txt && chess-backend migrate",
+  "functions": {
+    "app/main.py": {
+      "maxDuration": 300
+    }
+  }
+}

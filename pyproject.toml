@@ -66,7 +66,11 @@ app = ["py.typed"]
     "alembic/env.py",
     "alembic/script.py.mako",
     "alembic/versions/001_initial_schema.py",
+    "alembic/versions/002_game_session_clock.py",
 ]
+
+[tool.vercel]
+entrypoint = "app.main:app"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

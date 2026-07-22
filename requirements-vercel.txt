@@ -1,0 +1,2 @@
+# Vercel production install (used by vercel.json buildCommand)
+-e ".[migrate,server,py39]"
